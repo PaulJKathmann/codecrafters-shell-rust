@@ -25,7 +25,7 @@ impl Command {
         match self {
             Command::Builtin(command) => command.execute(),
             Command::Executable(command) => command.execute(),
-            Command::Unknown { command } => println!("{}: command not found", command),
+            Command::Unknown { command } => println!("{}: not found", command),
         }
     }
 }
