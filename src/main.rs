@@ -1,16 +1,8 @@
 #[allow(unused_imports)]
-use std::io::{self, Write};
+use std::env;
+use std::{io::{self, Write}, path::{PathBuf}};
 
-enum BuiltinCommand {
-    Exit,
-    Echo { args: Vec<String> },
-    Type { arg: String },
-}
-
-struct ExecutableCommand {
-    path: String,
-    args: Vec<String>,
-}
+/** Types ************************/
 enum Command {
     Builtin(BuiltinCommand),
     Executable(ExecutableCommand),
@@ -20,7 +12,6 @@ enum Command {
 }
 
 impl Command {
-
     fn execute(&self) {
         match self {
             Command::Builtin(command) => command.execute(),
@@ -30,6 +21,35 @@ impl Command {
     }
 }
 
+enum BuiltinCommand {
+    Exit,
+    Echo { args: Vec<String> },
+    Type { arg: String },
+}
+
+impl BuiltinCommand {
+    fn execute(&self) {
+        match self {
+            BuiltinCommand::Exit => exit(),
+            BuiltinCommand::Echo { args } => echo(args.to_vec()),
+            BuiltinCommand::Type { arg } => print_command_type(arg.to_string()),
+        }
+    }
+}
+
+struct ExecutableCommand {
+    path: String,
+    args: Vec<String>,
+}
+
+impl ExecutableCommand {
+    fn execute(&self) {
+        // TODO: Make this actually execute a real program later
+        println!("Executing {} {}", self.path, self.args.join(" "));
+    }
+}
+
+/** Main *************************/
 
 fn main() {
     // TODO: Uncomment the code below to pass the first stage
@@ -53,36 +73,34 @@ fn parse(input: &str) -> Command {
         ("exit", _) => Command::Builtin(BuiltinCommand::Exit),
         ("echo", args) => Command::Builtin(BuiltinCommand::Echo { args }),
         ("type", args) => Command::Builtin(BuiltinCommand::Type { arg: args.first().cloned().unwrap_or(String::new()) }),
-        (command, _) => Command::Unknown { command: command.to_string() },
-    }
-}
-
-impl BuiltinCommand {
-    fn execute(&self) {
-        match self {
-            BuiltinCommand::Exit => exit(),
-            BuiltinCommand::Echo { args } => echo(args.to_vec()),
-            BuiltinCommand::Type { arg } => print_command_type(arg.to_string()),
+        (command, args) => {
+            if let Some(path) = get_path(&command.to_string()) {
+                Command::Executable(ExecutableCommand { path: path.to_string_lossy().to_string(), args })
+            } else {
+                Command::Unknown { command: command.to_string() }
+            }
         }
-    }
-}
 
-impl ExecutableCommand {
-    fn execute(&self) {
-        // TODO: Make this actually execute a real program later
-        println!("Executing {} {}", self.path, self.args.join(" "));
     }
 }
 
 fn print_command_type(command_string: String) {
     let command = parse(&command_string);
+
     match command {
         Command::Unknown { command: type_} => println!("{}: not found", type_),
         Command::Builtin(_)  => { println!("{} is a shell builtin",  command_string) },
-        Command::Executable(_) => { println!("{} is a shell executable",  command_string) },
+        Command::Executable(ExecutableCommand { path, args }) => { println!("{} is a {}",  command_string, path) },
     }
-    
 }
+
+fn get_path(command: &String) -> Option<PathBuf> {
+    let paths = env::var_os("PATH")?;
+    env::split_paths(&paths)
+        .map(|path| path.join(command))
+        .find(|path| path.is_file())
+}
+
 
 fn echo(args: Vec<String>) {
     for arg in args {
