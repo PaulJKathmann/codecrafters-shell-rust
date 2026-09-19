@@ -7,9 +7,19 @@ fn main() {
     io::stdout().flush().unwrap();
     let mut user_input = String::new();
     while let Ok(_) = io::stdin().read_line(&mut user_input) {
-        println!("{}: command not found", user_input.trim());
+        eval(&user_input.trim());
         print!("$ ");
         io::stdout().flush().unwrap();
         user_input.clear();
     }
+}
+
+fn eval(command: &str) {
+    match command {
+        "exit" => exit(),
+        _ => println!("{}: command not found", command),
+    }
+}
+fn exit() {
+    std::process::exit(0);
 }
