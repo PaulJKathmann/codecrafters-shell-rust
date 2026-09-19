@@ -90,7 +90,7 @@ fn print_command_type(command_string: String) {
     match command {
         Command::Unknown { command: type_} => println!("{}: not found", type_),
         Command::Builtin(_)  => { println!("{} is a shell builtin",  command_string) },
-        Command::Executable(ExecutableCommand { path, args }) => { println!("{} is a {}",  command_string, path) },
+        Command::Executable(ExecutableCommand { path, args }) => { println!("{} is {}",  command_string, path) },
     }
 }
 
