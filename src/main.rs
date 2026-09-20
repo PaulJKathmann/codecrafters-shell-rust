@@ -90,7 +90,15 @@ fn parse(input: &str) -> Command {
         ("exit", _) => Command::Builtin(BuiltinCommand::Exit),
         ("echo", args) => Command::Builtin(BuiltinCommand::Echo { args }),
         ("pwd", _) => Command::Builtin(BuiltinCommand::Pwd),
-        ("cd", args) => Command::Builtin(BuiltinCommand::Cd { new_dir: PathBuf::from(args.first().unwrap_or(&String::new())) }),
+        ("cd", args) => {
+            let new_dir_str = args.first();
+            let home_dir = PathBuf::from(env::var("HOME").unwrap());
+            match new_dir_str {
+                Some(new_dir) if *new_dir == "~" => Command::Builtin(BuiltinCommand::Cd { new_dir: home_dir }),
+                Some(new_dir  ) => Command::Builtin(BuiltinCommand::Cd { new_dir: PathBuf::from(new_dir) }),
+                None => Command::Builtin(BuiltinCommand::Cd { new_dir: home_dir })
+            }
+        },
         ("type", args) => Command::Builtin(BuiltinCommand::Type { arg: args.first().cloned().unwrap_or(String::new()) }),
         (command, args) => {
             if let Some(path) = get_executable_path(&command.to_string()) {
@@ -154,6 +162,6 @@ fn cd(new_dir: &PathBuf) {
     let result = env::set_current_dir(&new_dir);
     match result {
         Ok(_) => {}
-        Err(error) => println!("cd: {}: No such file or directory", new_dir.display()),
+        Err(_) => println!("cd: {}: No such file or directory", new_dir.display()),
     }
 }
