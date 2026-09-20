@@ -48,7 +48,6 @@ struct ExecutableCommand {
 
 impl ExecutableCommand {
     fn execute(&self) {
-        println!("Executing {} {}", self.path, self.args.join(" "));
         let result = process::Command::new(&self.path)
                                                                 .args(&self.args)
                                                                 .status();                    
