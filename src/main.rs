@@ -1,6 +1,10 @@
 #[allow(unused_imports)]
 use std::env;
-use std::{io::{self, Write}, os::unix::fs::PermissionsExt, path::PathBuf};
+use std::{
+    io::{self, Write}, 
+    os::unix::fs::PermissionsExt, 
+    path::PathBuf,
+    process};
 
 /** Types ************************/
 enum Command {
@@ -44,8 +48,17 @@ struct ExecutableCommand {
 
 impl ExecutableCommand {
     fn execute(&self) {
-        // TODO: Make this actually execute a real program later
         println!("Executing {} {}", self.path, self.args.join(" "));
+        let result = process::Command::new(&self.path)
+                                                                .args(&self.args)
+                                                                .status();                    
+        match result {
+            Ok(status) if status.success() => {}
+            Ok(status) => println!("{} exited with {}", self.path, status),
+            Err(error) => {
+                println!("Failed to execute {}: {}", self.path, error); 
+            }
+        }
     }
 }
 
