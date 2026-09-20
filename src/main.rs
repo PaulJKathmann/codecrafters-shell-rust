@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use std::env;
-use std::{io::{self, Write}, path::{PathBuf}};
+use std::{io::{self, Write}, os::unix::fs::PermissionsExt, path::PathBuf};
 
 /** Types ************************/
 enum Command {
@@ -74,7 +74,7 @@ fn parse(input: &str) -> Command {
         ("echo", args) => Command::Builtin(BuiltinCommand::Echo { args }),
         ("type", args) => Command::Builtin(BuiltinCommand::Type { arg: args.first().cloned().unwrap_or(String::new()) }),
         (command, args) => {
-            if let Some(path) = get_path(&command.to_string()) {
+            if let Some(path) = get_executable_path(&command.to_string()) {
                 Command::Executable(ExecutableCommand { path: path.to_string_lossy().to_string(), args })
             } else {
                 Command::Unknown { command: command.to_string() }
@@ -94,11 +94,21 @@ fn print_command_type(command_string: String) {
     }
 }
 
-fn get_path(command: &String) -> Option<PathBuf> {
+fn get_executable_path(command: &String) -> Option<PathBuf> {
     let paths = env::var_os("PATH")?;
     env::split_paths(&paths)
         .map(|path| path.join(command))
-        .find(|path| path.is_file())
+        .filter(|path| path.is_file())
+        .find(|file| is_executable(file))
+}
+
+fn is_executable(file: &PathBuf) -> bool {
+    let Ok(metadata) = file.metadata() else {
+        return false
+    };
+    // 0o111 corresponds to the execution bits:
+    // User (0o100), Group (0o010), or Others (0o001)
+    metadata.permissions().mode() & 0o111 != 0
 }
 
 
