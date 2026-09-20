@@ -42,13 +42,14 @@ impl BuiltinCommand {
 }
 
 struct ExecutableCommand {
+    name: String,
     path: String,
     args: Vec<String>,
 }
 
 impl ExecutableCommand {
     fn execute(&self) {
-        let result = process::Command::new(&self.path)
+        let result = process::Command::new(&self.name)
                                                                 .args(&self.args)
                                                                 .status();                    
         match result {
@@ -87,7 +88,7 @@ fn parse(input: &str) -> Command {
         ("type", args) => Command::Builtin(BuiltinCommand::Type { arg: args.first().cloned().unwrap_or(String::new()) }),
         (command, args) => {
             if let Some(path) = get_executable_path(&command.to_string()) {
-                Command::Executable(ExecutableCommand { path: path.to_string_lossy().to_string(), args })
+                Command::Executable(ExecutableCommand { name: command.to_string(), path: path.to_string_lossy().to_string(), args })
             } else {
                 Command::Unknown { command: command.to_string() }
             }
