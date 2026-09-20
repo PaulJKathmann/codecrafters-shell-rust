@@ -29,6 +29,7 @@ enum BuiltinCommand {
     Exit,
     Echo { args: Vec<String> },
     Type { arg: String },
+    Pwd
 }
 
 impl BuiltinCommand {
@@ -37,6 +38,7 @@ impl BuiltinCommand {
             BuiltinCommand::Exit => exit(),
             BuiltinCommand::Echo { args } => echo(args.to_vec()),
             BuiltinCommand::Type { arg } => print_command_type(arg.to_string()),
+            BuiltinCommand::Pwd => pwd(),
         }
     }
 }
@@ -85,6 +87,7 @@ fn parse(input: &str) -> Command {
     match (command, args) {
         ("exit", _) => Command::Builtin(BuiltinCommand::Exit),
         ("echo", args) => Command::Builtin(BuiltinCommand::Echo { args }),
+        ("pwd", _) => Command::Builtin(BuiltinCommand::Pwd),
         ("type", args) => Command::Builtin(BuiltinCommand::Type { arg: args.first().cloned().unwrap_or(String::new()) }),
         (command, args) => {
             if let Some(path) = get_executable_path(&command.to_string()) {
@@ -134,4 +137,12 @@ fn echo(args: Vec<String>) {
 
 fn exit() {
     std::process::exit(0);
+}
+
+fn pwd() {
+    let cwd = env::current_dir();
+    match cwd {
+        Ok(path) => println!("{}", path.display()),
+        Err(error) => println!("{}", error),
+    }
 }
