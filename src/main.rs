@@ -29,7 +29,8 @@ enum BuiltinCommand {
     Exit,
     Echo { args: Vec<String> },
     Type { arg: String },
-    Pwd
+    Pwd,
+    Cd { new_dir: PathBuf },
 }
 
 impl BuiltinCommand {
@@ -39,6 +40,7 @@ impl BuiltinCommand {
             BuiltinCommand::Echo { args } => echo(args.to_vec()),
             BuiltinCommand::Type { arg } => print_command_type(arg.to_string()),
             BuiltinCommand::Pwd => pwd(),
+            BuiltinCommand::Cd { new_dir } => cd(new_dir),
         }
     }
 }
@@ -88,6 +90,7 @@ fn parse(input: &str) -> Command {
         ("exit", _) => Command::Builtin(BuiltinCommand::Exit),
         ("echo", args) => Command::Builtin(BuiltinCommand::Echo { args }),
         ("pwd", _) => Command::Builtin(BuiltinCommand::Pwd),
+        ("cd", args) => Command::Builtin(BuiltinCommand::Cd { new_dir: PathBuf::from(args.first().unwrap_or(&String::new())) }),
         ("type", args) => Command::Builtin(BuiltinCommand::Type { arg: args.first().cloned().unwrap_or(String::new()) }),
         (command, args) => {
             if let Some(path) = get_executable_path(&command.to_string()) {
@@ -140,9 +143,17 @@ fn exit() {
 }
 
 fn pwd() {
-    let cwd = env::current_dir();
+    let cwd: Result<PathBuf, io::Error> = env::current_dir();
     match cwd {
         Ok(path) => println!("{}", path.display()),
         Err(error) => println!("{}", error),
+    }
+}
+
+fn cd(new_dir: &PathBuf) {
+    let result = env::set_current_dir(&new_dir);
+    match result {
+        Ok(_) => {}
+        Err(error) => println!("Failed to change directory: {}", error),
     }
 }
