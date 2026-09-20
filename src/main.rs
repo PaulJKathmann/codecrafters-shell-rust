@@ -154,6 +154,6 @@ fn cd(new_dir: &PathBuf) {
     let result = env::set_current_dir(&new_dir);
     match result {
         Ok(_) => {}
-        Err(error) => println!("Failed to change directory: {}", error),
+        Err(error) => println!("cd: {}: No such file or directory", error),
     }
 }
