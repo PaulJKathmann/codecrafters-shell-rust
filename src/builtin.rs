@@ -1,6 +1,6 @@
 use std::{env, io, path::PathBuf};
 
-use crate::command::Command;
+use crate::command::ResolvedCommand;
 use crate::executable::ExecutableCommand;
 use crate::parser::parse;
 
@@ -55,9 +55,9 @@ fn print_command_type(command_string: String) {
     let command = parse(&command_string);
 
     match command {
-        Command::Unknown { command: type_ } => println!("{}: not found", type_),
-        Command::Builtin(_) => println!("{} is a shell builtin", command_string),
-        Command::Executable(ExecutableCommand { path, .. }) => {
+        ResolvedCommand::Unknown { command: type_ } => println!("{}: not found", type_),
+        ResolvedCommand::Builtin(_) => println!("{} is a shell builtin", command_string),
+        ResolvedCommand::Executable(ExecutableCommand { path, .. }) => {
             println!("{} is {}", command_string, path)
         }
     }

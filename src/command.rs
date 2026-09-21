@@ -1,18 +1,18 @@
 use crate::builtin::BuiltinCommand;
 use crate::executable::ExecutableCommand;
 
-pub enum Command {
+pub enum ResolvedCommand {
     Builtin(BuiltinCommand),
     Executable(ExecutableCommand),
     Unknown { command: String },
 }
 
-impl Command {
+impl ResolvedCommand {
     pub fn execute(&self) {
         match self {
-            Command::Builtin(command) => command.execute(),
-            Command::Executable(command) => command.execute(),
-            Command::Unknown { command } => println!("{}: not found", command),
+            ResolvedCommand::Builtin(command) => command.execute(),
+            ResolvedCommand::Executable(command) => command.execute(),
+            ResolvedCommand::Unknown { command } => println!("{}: not found", command),
         }
     }
 }
